@@ -56,7 +56,7 @@ class LoadDataset(torch.utils.data.Dataset):
 
 class ResNetDataset(torch.utils.data.Dataset):
     def __init__(self, data, transform=None):
-        super(ResNetDataset, self).__init__(data)
+        super(ResNetDataset, self).__init__()
         # List of files
         self.data_files = data[0]  # [DATA_FOLDER.format(id) for id in ids]
         self.labels = data[1]  # [LABELS_FOLDER.format(id) for id in ids]
