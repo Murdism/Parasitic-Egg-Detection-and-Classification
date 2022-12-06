@@ -7,13 +7,15 @@ from read_dataset import build_df
 from utils import CFG
 from sklearn.model_selection import train_test_split
 import torch
+import matplotlib.pyplot as plt
 import torchvision.transforms as transforms
 
 
 # Parameters
-params = {"batch_size": 64, "shuffle": True, "num_workers": 6}
+params = {'batch_size': 64,
+          'shuffle': True,
+          'num_workers': 6}
 max_epochs = 100
-
 
 class LoadDataset(torch.utils.data.Dataset):
     def __init__(self, data):
@@ -28,6 +30,10 @@ class LoadDataset(torch.utils.data.Dataset):
 
     def __len__(self):
         return len(self.data_files)  # the length of the used data
+    
+    def img_size(self,idx):
+        self.img =np.asarray(io.imread(self.data_files[idx]))
+        return (self.img).shape
 
     def __getitem__(self, idx):
         #         Pre-processing steps
@@ -48,12 +54,12 @@ class LoadDataset(torch.utils.data.Dataset):
         return torch.from_numpy(data_p), torch.from_numpy(label_p)
 
 
-class ResNetDataset(LoadDataset):
+class ResNetDataset(torch.utils.data.Dataset):
     def __init__(self, data, transform=None):
         super(ResNetDataset, self).__init__(data)
         # List of files
-        # self.data_files = data[0]  # [DATA_FOLDER.format(id) for id in ids]
-        # self.labels = data[1]  # [LABELS_FOLDER.format(id) for id in ids]
+        self.data_files = data[0]  # [DATA_FOLDER.format(id) for id in ids]
+        self.labels = data[1]  # [LABELS_FOLDER.format(id) for id in ids]
         self.transform = transform
         # Sanity check : raise an error if some files do not exist
         for f in self.data_files:
@@ -62,6 +68,11 @@ class ResNetDataset(LoadDataset):
 
     def __len__(self):
         return len(self.data_files)  # the length of the used data
+    
+    def img_size(self,idx):
+        self.img =np.asarray(io.imread(self.data_files[idx]))
+        return (self.img).shape
+
 
     def __getitem__(self, idx):
         #         Pre-processing steps
@@ -95,17 +106,18 @@ class ResNetDataset(LoadDataset):
             # print(label_p)
 
             return data_p, torch.LongTensor(label_p)
-        else:
+        else:   
             # print("label = ", self.label.shape)
             data_p, label_p = self.data, self.labels[idx]
             # Return the torch.Tensor values
             return torch.from_numpy(data_p), torch.from_numpy(label_p)
 
 
-def split_dataset(train, target, validation=False):
-    # 70%-20%-10% split, as we're splitting 10% from the already split X_train so we're actually ending up with a 72%-20%-8% split here:
-    # 80 -20
-    # x = [[img_path],[]]
+
+def split_dataset(train,target,validation=False):
+    #70%-20%-10% split, as we're splitting 10% from the already split X_train so we're actually ending up with a 72%-20%-8% split here:
+    #80 -20
+    # x = img_path
     # y = 'xmin', 'ymin', 'xmax', 'ymax', 'label'
 
     X_train, X_test, y_train, y_test = train_test_split(
@@ -122,7 +134,6 @@ def split_dataset(train, target, validation=False):
         )
         train_data = [X_train, y_train]
         validation_data = [X_train, y_valid]
-
         return train_data, validation_data, test_data
 
     train_data = [X_train, y_train]
@@ -132,17 +143,17 @@ def split_dataset(train, target, validation=False):
 
 
 # def train(data_loader, model, optimizer,epochs=100):
-#     '''
-#         sigma:  (num_samples,num_mixtures,2,2)
+#     ''' 
+#         sigma:  (num_samples,num_mixtures,2,2) 
 #         pi:     (num_samples,num_mixtures)
 #         mue:    (num_samples,num_mixtures,2)
 
-#         The last parameter '2' represents x and y
+#         The last parameter '2' represents x and y  
 #     '''
 #     num_batches = len(data_loader)
 #     total_loss = 0
 #     model.train()
-
+    
 #     for i in range (epochs):
 #         total_loss = 0
 #         for X, y in data_loader:
@@ -166,7 +177,7 @@ def split_dataset(train, target, validation=False):
 #             print(f"Epoch {i+1} train loss: {avg_loss}")
 #     print(f"Epoch {i+1} train loss: {avg_loss}")
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     # ['id', 'label', 'xmin', 'ymin', 'xmax', 'ymax', 'img_path']
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Using {device} device")
@@ -176,22 +187,33 @@ if __name__ == "__main__":
     df, classes = build_df(XML_FILES)
     data = df.to_numpy()
 
-    # input and target
-    input = df[["img_path"]].values
-    input = np.squeeze(input)
+    # input and target 
+    input  = df[['img_path']].values
+    input =np.squeeze(input)
     # input = input.reset_index()
-    target = df[["xmin", "ymin", "xmax", "ymax", "label"]].values
+    target = df[['xmin','ymin', 'xmax', 'ymax','label']].values.astype(np.int64)
+   
 
     # count by groups around 1k for each class
     # group_df = df.groupby('label',sort=True).count()
     # print("group_df: ",group_df)
 
     # splitting data
-    # train_data, validation_data, test_data = split_dataset(input,target,True)
-    train_data, test_data = split_dataset(input, target, False)
+    #train_data, validation_data, test_data = split_dataset(input,target,True)
+    train_data, test_data = split_dataset(input,target,False)
+
+    # Create dataset
+    train_dataset = LoadDataset(train_data)
+    test_dataset = LoadDataset(test_data)
+
+
+    print("train_dataset: ",train_dataset.img_size(100),train_dataset.img_size(5),train_dataset.img_size(10))
+    sample = (train_dataset[100])[0] 
+    plt.imshow(sample.permute(1, 2, 0) )
+    plt.show()
 
     # print(train_data[0],train_data[1][0].ravel())
-
+    
     # # Dataloaders
     # train_dataloader = torch.utils.data.DataLoader(train_data, params['batch_size'],num_workers=params['num_workers'])
     # #validation_dataloader = torch.utils.data.DataLoader(validation_data, params['batch_size'],num_workers=params['num_workers'])
