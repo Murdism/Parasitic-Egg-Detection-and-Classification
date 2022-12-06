@@ -1,4 +1,5 @@
 import os
+from skimage import io
 from glob import glob
 import numpy as np
 import pandas as pd
@@ -14,39 +15,34 @@ params = {'batch_size': 64,
           'num_workers': 6}
 max_epochs = 100
 
-# class LoadDataset(torch.utils.data.Dataset):
-#     def __init__(self, data):
-#         super(LoadDataset, self).__init__()
-#         # List of files
-#         self.data_files = # [DATA_FOLDER.format(id) for id in ids]
-#         self.label_files = [LABELS_FOLDER.format(id) for id in ids]
-#         # Sanity check : raise an error if some files do not exist
-#         for f in self.data_files + self.label_files:
-#             if not os.path.isfile(f):
-#                 raise KeyError("{} is not a file !".format(f))
+class LoadDataset(torch.utils.data.Dataset):
+    def __init__(self, data):
+        super(LoadDataset, self).__init__()
+        # List of files
+        self.data_files = data[0]# [DATA_FOLDER.format(id) for id in ids]
+        self.labels = data[1]   # [LABELS_FOLDER.format(id) for id in ids]
+        # Sanity check : raise an error if some files do not exist
+        for f in self.data_files :
+            if not os.path.isfile(f):
+                raise KeyError("{} is not a file !".format(f))
 
-#     def __len__(self):
-#         return len(self.data_files)  # the length of the used data
+    def __len__(self):
+        return len(self.data_files)  # the length of the used data
 
-#     def __getitem__(self, idx):
-#         #         Pre-processing steps
-#         #     # Data is normalized in [0, 1]
-#         self.data = (
-#                 1
-#                 / 255
-#                 * np.asarray(
-#             io.imread(self.data_files[idx], plugin="pil").transpose((2, 0, 1)),
-#             dtype="float32",
-#         )
-#         )
-#         self.label = np.asarray(
-#             convert_from_color(io.imread(self.label_files[idx], plugin="pil")),
-#             dtype="int64",
-#         )
-#         # print("label = ", self.label.shape)
-#         data_p, label_p = self.data, self.label
-#         # Return the torch.Tensor values
-#         return torch.from_numpy(data_p), torch.from_numpy(label_p)
+    def __getitem__(self, idx):
+        #         Pre-processing steps
+        #     # Data is normalized in [0, 1]
+        self.data = (
+                1
+                / 255
+                * np.asarray(io.imread(self.data_files[idx], plugin="pil").transpose((2, 0, 1)),
+            dtype="float32",
+            )
+        )
+        # print("label = ", self.label.shape)
+        data_p, label_p = self.data, self.labels[idx]
+        # Return the torch.Tensor values
+        return torch.from_numpy(data_p), torch.from_numpy(label_p)
 
 
 
@@ -60,13 +56,13 @@ def split_dataset(train,target,validation=False):
 
     if validation:
         X_train, X_valid, y_train, y_valid = train_test_split(X_train, y_train, train_size=0.9)
-        train_data = [np.squeeze(X_train, axis=1),y_train.to_numpy()]
-        validation_data = [np.squeeze(X_train, axis=1),y_valid.to_numpy()]
+        train_data = [X_train,y_train]
+        validation_data = [X_train,y_valid]
 
         return train_data, validation_data, test_data
 
-    train_data = [np.squeeze(X_train, axis=1),y_train.to_numpy()]
-    test_data = [np.squeeze(X_train, axis=1),y_test.to_numpy()]
+    train_data = [X_train,y_train]
+    test_data = [X_train,y_test]
 
     return train_data,test_data
 
@@ -121,7 +117,7 @@ if __name__ == '__main__':
     input =np.squeeze(input)
     # input = input.reset_index()
     target = df[['xmin','ymin', 'xmax', 'ymax','label']].values
-    print(target)
+   
 
     # count by groups around 1k for each class
     # group_df = df.groupby('label',sort=True).count()
@@ -129,7 +125,8 @@ if __name__ == '__main__':
 
     # splitting data
     #train_data, validation_data, test_data = split_dataset(input,target,True)
-    # train_data, test_data = split_dataset(input,target,False)
+    train_data, test_data = split_dataset(input,target,False)
+    
 
     # print(train_data[0],train_data[1][0].ravel())
     
