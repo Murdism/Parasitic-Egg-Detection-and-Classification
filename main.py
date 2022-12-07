@@ -1,5 +1,7 @@
 import os
+import skimage 
 from skimage import io
+from skimage import transform
 from glob import glob
 import numpy as np
 import pandas as pd
@@ -54,10 +56,11 @@ class LoadDataset(torch.utils.data.Dataset):
         return torch.from_numpy(data_p), torch.from_numpy(label_p)
 
 
-class ResNetDataset(torch.utils.data.Dataset):
-    def __init__(self, data, transform=None):
-        super(ResNetDataset, self).__init__()
+class Custom_Dataset(torch.utils.data.Dataset):
+    def __init__(self, data, transform=None,IMAGE_SIZE = 640):
+        super(Custom_Dataset, self).__init__()
         # List of files
+        self.IMAGE_SIZE = IMAGE_SIZE
         self.data_files = data[0]  # [DATA_FOLDER.format(id) for id in ids]
         self.labels = data[1]  # [LABELS_FOLDER.format(id) for id in ids]
         self.transform = transform
@@ -77,10 +80,12 @@ class ResNetDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         #         Pre-processing steps
         #     # Data is normalized in [0, 1]
-        self.data = (
-            1.0
-            / 255
-            * np.asarray(
+        
+ 
+        if self.transform is not None:
+
+            self.data = (
+                np.asarray(
                 io.imread(self.data_files[idx], plugin="pil").transpose(
                     (2, 0, 1)
                 ),
@@ -88,13 +93,12 @@ class ResNetDataset(torch.utils.data.Dataset):
             )
         )
 
-        if self.transform is not None:
             # convert the tensor to image
             tensor2image_transform = transforms.ToPILImage()
 
             # make the format avialble to resnet model
             data_p = torch.tensor(
-                self.data * 255
+                self.data 
             )  # tranform the image into ResNet format
 
             image = tensor2image_transform(data_p)
@@ -107,7 +111,18 @@ class ResNetDataset(torch.utils.data.Dataset):
 
             return data_p, torch.LongTensor(label_p)
         else:   
-            # print("label = ", self.label.shape)
+            img = io.imread(self.data_files[idx], plugin="pil")
+            resized_img = skimage.transform.resize(img, (self.IMAGE_SIZE, self.IMAGE_SIZE))
+            self.data = (
+             np.asarray(
+               resized_img.transpose(
+                    (2, 0, 1)
+                ),
+                dtype="float32",
+            )
+            )
+
+            # print("label = ", self.label.shape).
             data_p, label_p = self.data, self.labels[idx]
             # Return the torch.Tensor values
             return torch.from_numpy(data_p), torch.from_numpy(label_p)
@@ -203,11 +218,11 @@ if __name__ == '__main__':
     train_data, test_data = split_dataset(input,target,False)
 
     # Create dataset
-    train_dataset = LoadDataset(train_data)
-    test_dataset = LoadDataset(test_data)
+    train_dataset = Custom_Dataset(train_data)
+    # test_dataset = LoadDataset(test_data)
 
 
-    print("train_dataset: ",train_dataset.img_size(100),train_dataset.img_size(5),train_dataset.img_size(10))
+    # print("train_dataset: ",train_dataset.img_size(100),train_dataset.img_size(5),train_dataset.img_size(10))
     sample = (train_dataset[100])[0] 
     plt.imshow(sample.permute(1, 2, 0) )
     plt.show()
