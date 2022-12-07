@@ -18,21 +18,6 @@ def preprocess_image():
     return preprocess
 
 
-def preprocess_image2():
-    """make the images into restnet 50 model format and normalization"""
-    preprocess = transforms.Compose(
-        [
-            transforms.Resize(640),
-            transforms.CenterCrop(640),
-            transforms.ToTensor(),
-            transforms.Normalize(
-                mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
-            ),
-        ]
-    )
-    return preprocess
-
-
 if __name__ == "__main__":
     test_tensor = torch.randint(0, 255, size=(3, 200, 200), dtype=torch.uint8)
 
