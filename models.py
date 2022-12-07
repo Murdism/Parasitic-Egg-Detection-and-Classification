@@ -46,7 +46,7 @@ def get_custom_model(res_out_features, n_classes):
     """
     models = ["resnet50", "resnet101", "resnet152"]
     res_model = get_pretrained_model(models[2])
-    nn_model = NeuralNet(res_out_features, classes)
+    nn_model = NeuralNet(res_out_features, n_classes)
     custom_model = nn.Sequential(res_model, nn_model)
     return custom_model
 
