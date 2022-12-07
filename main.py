@@ -62,7 +62,8 @@ class Custom_Dataset(torch.utils.data.Dataset):
         # List of files
         self.IMAGE_SIZE = IMAGE_SIZE
         self.data_files = data[0]  # [DATA_FOLDER.format(id) for id in ids]
-        self.labels = data[1]  # [LABELS_FOLDER.format(id) for id in ids]
+        self.labels = data[1][:,:4]  # [LABELS_FOLDER.format(id) for id in ids]
+        self.class_labels = torch.LongTensor(data[1][:,4]) 
         self.transform = transform
         # Sanity check : raise an error if some files do not exist
         for f in self.data_files:
@@ -105,11 +106,11 @@ class Custom_Dataset(torch.utils.data.Dataset):
             data_p = self.transform()(
                 image
             )  # transform the image into ResNet format
+             
+            label_p = self.class_labels[idx]
+            # print(self.labels[idx][4])
 
-            label_p = self.labels[idx][4]
-            # print(label_p)
-
-            return data_p, torch.LongTensor(label_p)
+            return data_p,label_p
         else:   
             img = io.imread(self.data_files[idx], plugin="pil")
             resized_img = skimage.transform.resize(img, (self.IMAGE_SIZE, self.IMAGE_SIZE))
