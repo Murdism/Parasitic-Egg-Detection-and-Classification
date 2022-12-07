@@ -11,6 +11,8 @@ from sklearn.model_selection import train_test_split
 import torch
 import matplotlib.pyplot as plt
 import torchvision.transforms as transforms
+import cv2 
+from chitra.image import Chitra
 
 
 # Parameters
@@ -19,6 +21,33 @@ params = {'batch_size': 64,
           'num_workers': 6}
 max_epochs = 100
 
+# Plot numpy array
+def plot_image(image):
+    plt.imshow(image) # img.permute(1, 2, 0)
+    plt.title(image.shape)
+    plt.show()
+
+def class_to_color(class_id):
+    colors = [(255,0,0),(0,255,0),(0,0,255),(255,255,0),(255,0,255),(0,255,255),(255,100,100),
+              (100,255,100),(100,100,255),(255,100,0),(255,0,100),(100,0,255),(100,100,255),(100,255,0),
+              (100,255,100)]
+    return colors[class_id]
+
+# draw a single bounding box onto a numpy array image
+def draw_bounding_box(img, annotation,class_id):
+    # if annotation.isnull().values.any():
+    #     return
+    
+    x_min, y_min,x_max, y_max = int(annotation[0]), int(annotation[1]),int(annotation[2]),int(annotation[3])
+    
+    class_id = int(class_id)
+    color = class_to_color(class_id)
+    print(x_min, y_min,x_max, y_max)
+    print("The shape: ",img.shape)
+    img = img.transpose(1, 2, 0)
+    print(img)
+    cv2.rectangle(img,(x_min,y_min),(x_max,y_max), color, 2)
+    plot_image(img)
 class LoadDataset(torch.utils.data.Dataset):
     def __init__(self, data):
         super(LoadDataset, self).__init__()
@@ -40,20 +69,18 @@ class LoadDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         #         Pre-processing steps
         #     # Data is normalized in [0, 1]
+        
         self.data = (
-            1
-            / 255
-            * np.asarray(
-                io.imread(self.data_files[idx], plugin="pil").transpose(
-                    (2, 0, 1)
-                ),
-                dtype="float32",
+    np.asarray(
+                io.imread(self.data_files[idx], plugin="pil")
             )
         )
-        # print("label = ", self.label.shape)
+        # print("label = ", self.labels.shape)
+        # draw_bounding_box(self.data, self.labels[idx],self.labels[idx][4])
         data_p, label_p = self.data, self.labels[idx]
         # Return the torch.Tensor values
         return torch.from_numpy(data_p), torch.from_numpy(label_p)
+
 
 
 class Custom_Dataset(torch.utils.data.Dataset):
@@ -76,7 +103,27 @@ class Custom_Dataset(torch.utils.data.Dataset):
     def img_size(self,idx):
         self.img =np.asarray(io.imread(self.data_files[idx]))
         return (self.img).shape
+    def original_img(self,idx):
+        self.img =(
+                   1/255
+             *np.asarray(
+                io.imread(self.data_files[idx], plugin="pil").transpose(
+                    (2, 0, 1)
+                ),
+                dtype="float32",
+            )
+        )
+        return (self.img)
 
+    def get_class_label(self,idx):
+        return self.class_labels[idx]
+
+    def resized_bbox(self,idx):
+        image = Chitra(self.data_files[idx], self.labels[idx], self.class_labels[idx])
+        # Chitra can rescale your bounding box automatically based on the new image size.
+        image.resize_image_with_bbox((640, 640))
+
+        return [image.bboxes[0].x1_int,image.bboxes[0].y1_int,image.bboxes[0].x2_int,image.bboxes[0].y2_int]
 
     def __getitem__(self, idx):
         #         Pre-processing steps
@@ -115,6 +162,7 @@ class Custom_Dataset(torch.utils.data.Dataset):
             img = io.imread(self.data_files[idx], plugin="pil")
             resized_img = skimage.transform.resize(img, (self.IMAGE_SIZE, self.IMAGE_SIZE))
             self.data = (
+     
              np.asarray(
                resized_img.transpose(
                     (2, 0, 1)
@@ -122,9 +170,10 @@ class Custom_Dataset(torch.utils.data.Dataset):
                 dtype="float32",
             )
             )
-
+            # print("self.data_files[idx] : " ,self.data_files[idx])
             # print("label = ", self.label.shape).
-            data_p, label_p = self.data, self.labels[idx]
+            label_p = self.resized_bbox(idx)
+            data_p= self.data
             # Return the torch.Tensor values
             return torch.from_numpy(data_p), torch.from_numpy(label_p)
 
@@ -220,17 +269,27 @@ if __name__ == '__main__':
 
     # Create dataset
     train_dataset = Custom_Dataset(train_data)
-    # test_dataset = LoadDataset(test_data)
+    test_dataset = Custom_Dataset(test_data)
 
+    # sample
 
-    # print("train_dataset: ",train_dataset.img_size(100),train_dataset.img_size(5),train_dataset.img_size(10))
-    sample = (train_dataset[100])[0] 
-    plt.imshow(sample.permute(1, 2, 0) )
-    plt.show()
+    #sample input
+    sample_input = ((train_dataset[100])[0]).numpy()
+    sample_original = train_dataset.original_img(100)
+    sample_label = (train_dataset[100])[1] 
+    sample_class = train_dataset.get_class_label(100)
+    resized = train_dataset.resized_bbox(100)
+    print(type(resized))
+    draw_bounding_box(sample_original,sample_label,sample_class)
+    draw_bounding_box(sample_input,resized,sample_class)
 
     # print(train_data[0],train_data[1][0].ravel())
     
-    # # Dataloaders
-    # train_dataloader = torch.utils.data.DataLoader(train_data, params['batch_size'],num_workers=params['num_workers'])
+    # Dataloaders
+    # train_dataloader = torch.utils.data.DataLoader(train_dataset, params['batch_size'],num_workers=params['num_workers'])
     # #validation_dataloader = torch.utils.data.DataLoader(validation_data, params['batch_size'],num_workers=params['num_workers'])
     # test_dataloader = torch.utils.data.DataLoader(test_data, params['batch_size'],num_workers=params['num_workers'])
+
+
+# def show_image(array,bbox):
+    
