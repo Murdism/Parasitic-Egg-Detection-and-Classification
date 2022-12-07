@@ -42,10 +42,7 @@ def draw_bounding_box(img, annotation,class_id):
     
     class_id = int(class_id)
     color = class_to_color(class_id)
-    print(x_min, y_min,x_max, y_max)
-    print("The shape: ",img.shape)
     img = img.transpose(1, 2, 0)
-    print(img)
     cv2.rectangle(img,(x_min,y_min),(x_max,y_max), color, 2)
     plot_image(img)
 class LoadDataset(torch.utils.data.Dataset):
@@ -103,6 +100,7 @@ class Custom_Dataset(torch.utils.data.Dataset):
     def img_size(self,idx):
         self.img =np.asarray(io.imread(self.data_files[idx]))
         return (self.img).shape
+
     def original_img(self,idx):
         self.img =(
                    1/255
@@ -113,7 +111,7 @@ class Custom_Dataset(torch.utils.data.Dataset):
                 dtype="float32",
             )
         )
-        return (self.img)
+        return np.asarray([self.img,self.labels[idx]])
 
     def get_class_label(self,idx):
         return self.class_labels[idx]
@@ -123,7 +121,7 @@ class Custom_Dataset(torch.utils.data.Dataset):
         # Chitra can rescale your bounding box automatically based on the new image size.
         image.resize_image_with_bbox((640, 640))
 
-        return [image.bboxes[0].x1_int,image.bboxes[0].y1_int,image.bboxes[0].x2_int,image.bboxes[0].y2_int]
+        return np.asarray([image.bboxes[0].x1_int,image.bboxes[0].y1_int,image.bboxes[0].x2_int,image.bboxes[0].y2_int])
 
     def __getitem__(self, idx):
         #         Pre-processing steps
@@ -274,14 +272,13 @@ if __name__ == '__main__':
     # sample
 
     #sample input
-    sample_input = ((train_dataset[100])[0]).numpy()
-    sample_original = train_dataset.original_img(100)
-    sample_label = (train_dataset[100])[1] 
-    sample_class = train_dataset.get_class_label(100)
-    resized = train_dataset.resized_bbox(100)
-    print(type(resized))
-    draw_bounding_box(sample_original,sample_label,sample_class)
-    draw_bounding_box(sample_input,resized,sample_class)
+    # sample_input = ((train_dataset[100])[0]).numpy()
+    # sample_original,sample_label  = (train_dataset.original_img(100))[0],(train_dataset.original_img(100))[1]
+    # sample_class = train_dataset.get_class_label(100)
+    # resized = train_dataset.resized_bbox(100)
+    # print(type(sample_label),sample_label)
+    # draw_bounding_box(sample_original,sample_label,sample_class)
+    # draw_bounding_box(sample_input,resized,sample_class)
 
     # print(train_data[0],train_data[1][0].ravel())
     
