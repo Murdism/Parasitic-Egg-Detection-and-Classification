@@ -26,15 +26,13 @@ def get_pretrained_model(model_name):
 class NeuralNet(nn.Module):
     def __init__(self, input_features=1000, n_classes=11):
         super(NeuralNet, self).__init__()
-        self.fc1 = nn.Linear(input_features, 256)
-        self.out = nn.Linear(256, n_classes)
+        # self.fc1 = nn.Linear(input_features, 256)
+        self.out = nn.Linear(input_features, n_classes)
 
     def forward(self, x):
-        print("\n\nHere")
-        x = self.fc1(x)
-        print("\n\nHere")
+        # x = self.fc1(x)
         x = F.relu(x)
-        x = F.dropout(x, p=0.2)  # with 20% dropout rate
+        # x = F.dropout(x, p=0.2)  # with 20% dropout rate
         x = self.out(x)
         return x
 
