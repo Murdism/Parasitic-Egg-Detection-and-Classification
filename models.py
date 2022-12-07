@@ -6,7 +6,9 @@ import torch.nn.functional as F
 
 def get_pretrained_model(model_name):
     res_model = torch.hub.load(
-        "pytorch/vision:v0.10.0", model_name, pretrained=True
+        "pytorch/vision:v0.10.0",
+        model_name,
+        weights="ResNet152_Weights.DEFAULT",
     )
     # or any of these variants
     # model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet34', pretrained=True)
