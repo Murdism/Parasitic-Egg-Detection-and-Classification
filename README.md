@@ -27,9 +27,9 @@ After downloading the dataset the directory should look like :
 <pre> 
 |--cell_dataset <br/>
     |---images  <br/>
-    |       |---train<br/>
-    |       |---test<br/>
-    |       |---valid <br/>
+            |---train<br/>
+            |---test<br/>
+            |---valid <br/>
     |---labels<br/>
             |---train<br/>
             |---test<br/>
