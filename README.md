@@ -25,15 +25,15 @@ The original dataset needs pre-processing to be used yolo 7. We pre-proceesed th
 ### Data format
 After downloading the dataset the directory should look like :
 
-|--cell_dataset
-    |---images
-    |       |---train
-    |       |---test
-    |       |---valid 
-    |---labels
-            |---train
-            |---test
-            |---valid 
+|--cell_dataset <br/>
+    |---images  <br/>
+    |       |---train<br/>
+    |       |---test<br/>
+    |       |---valid <br/>
+    |---labels<br/>
+            |---train<br/>
+            |---test<br/>
+            |---valid <br/>
 
 
 ## Training
