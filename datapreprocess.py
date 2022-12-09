@@ -132,7 +132,7 @@ def split_dataset(train,target,validation=False):
             stratify=target[:, 4],
         )
         train_data = [X_train, y_train]
-        validation_data = [X_train, y_valid]
+        validation_data = [X_valid, y_valid]
         return train_data, validation_data, test_data
 
     train_data = [X_train, y_train]
