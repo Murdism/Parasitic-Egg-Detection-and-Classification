@@ -15,6 +15,6 @@ python train_aux.py --workers 8 --device 0 --batch-size 16 --data data/custom.ya
 
 
 ### Run
-python train.py --epochs 10 --workers 8 --device 0 --batch-size 32 --data data/cell_detection.yaml \
+python train.py --epochs 10 --workers 6 --device 0 --batch-size 12 --data data/cell_detection.yaml \
 --img 640 640 --cfg cfg/training/cell_detection.yaml --weights 'yolov7_training.pt' \
 --name yolov7_cell_detection_fixed_res --hyp data/hyp.scratch.custom.yaml
