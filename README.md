@@ -47,5 +47,5 @@ python train.py --epochs 10 --workers 6 --device 0 --batch-size 12 --data data/c
 --name yolov7_cell_detection_fixed_res --hyp data/hyp.scratch.custom.yaml
 ```
 ## Results 
-Results of the trained model can be found ./yolov7/runs/train/yolov7_cell_detection_fixed_res23
+Results of the trained model can be found [Here](./yolov7/runs/train/yolov7_cell_detection_fixed_res23)
 
