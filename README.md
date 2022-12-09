@@ -24,7 +24,7 @@ The original dataset needs pre-processing to be used yolo 7. We pre-proceesed th
 
 ### Data format
 After downloading the dataset the directory should look like :
-
+<pre> 
 |--cell_dataset <br/>
     |---images  <br/>
     |       |---train<br/>
@@ -34,7 +34,7 @@ After downloading the dataset the directory should look like :
             |---train<br/>
             |---test<br/>
             |---valid <br/>
-
+</pre> 
 
 ## Training
 To train the model:
