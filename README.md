@@ -12,16 +12,15 @@ The link to the original yolo 7 implementation is [here](https://github.com/Wong
 
 ## Dataset
 The Chula dataset contains around 11k images of 11 different classes of parastic eggs.
-[Here](https://kaggle.com/datasets/5483e3ebb7abafb3d22876dbc921cce5adce33ffb318a6676fc3
-9c465fff6a4b) is a link to the original dataset.
+[Here](https://kaggle.com/datasets/5483e3ebb7abafb3d22876dbc921cce5adce33ffb318a6676fc39c465fff6a4b) is a link to the original dataset.
 
 ### Preprocessing source code  
-Some sourcode to pre-process dataset can be found [Here](https://data.mendeley.com/v1/datasets/ytf4xwvy69/draft?a=19da38f9-4716-46fd-9715-fe368b98ba85)
+Some sourcode to pre-process dataset can be found [Here](https://data.mendeley.com/v1/datasets/ytf4xwvy69/draft?a=19da38f9-4716-46fd-9715-fe368b98ba85).
 
 ### Pre-Processed Dataset
 The original dataset needs pre-processing to be used yolo 7. We pre-proceesed the dataset for convinient format to be used by yolo 7.
 
-Link](https://drive.google.com/file/d/1bQvOkOqv5YWJPhr2f9RH-4tM7b7VKFfM/view?usp=share_link)
+[Link](https://drive.google.com/file/d/1bQvOkOqv5YWJPhr2f9RH-4tM7b7VKFfM/view?usp=share_link)
 
 ### Data format
 After downloading the dataset the directory should look like :
