@@ -31,9 +31,10 @@ def plot_image(image):
     plt.show()
 
 def class_to_color(class_id):
+    # ['Ascaris lumbricoides', 'Capillaria philippinensis', 'Enterobius vermicularis', 'Fasciolopsis buski', 'Hookworm egg',
+    # 'Hymenolepis diminuta', 'Hymenolepis nana', 'Opisthorchis viverrine', 'Paragonimus spp', 'Taenia spp. egg', 'Trichuris trichiura']
     colors = [(255,0,0),(0,255,0),(0,0,255),(255,255,0),(255,0,255),(0,255,255),(255,100,100),
-              (100,255,100),(100,100,255),(255,100,0),(255,0,100),(100,0,255),(100,100,255),(100,255,0),
-              (100,255,100)]
+              (100,255,100),(100,100,255),(255,100,0),(255,0,100)]
     return colors[class_id]
 
 # draw a single bounding box onto a numpy array image
