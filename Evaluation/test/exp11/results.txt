@@ -1,0 +1,13 @@
+               Class      Images      Labels           P           R      mAP@.5  mAP@.5:.95
+                 all        2186        2186       0.965       0.952       0.985       0.891
+Ascaris lumbricoides        2186         199       0.951       0.879       0.964        0.91
+Capillaria philippinensis   2186         200       0.956        0.97        0.98       0.845
+Enterobius vermicularis     2186         199       0.964       0.951       0.986       0.862
+  Fasciolopsis buski        2186         187           1       0.823       0.981       0.853
+        Hookworm egg        2186         201       0.962       0.955       0.982       0.803
+Hymenolepis diminuta        2186         200       0.994       0.995       0.996       0.979
+    Hymenolepis nana        2186         200       0.973       0.975        0.99       0.879
+Opisthorchis viverrine      2186         199       0.972        0.96        0.99       0.866
+     Paragonimus spp        2186         200       0.896        0.99       0.986       0.953
+     Taenia spp. egg        2186         202       0.971       0.986       0.983       0.927
+ Trichuris trichiura        2186         199       0.972        0.99       0.993       0.926
