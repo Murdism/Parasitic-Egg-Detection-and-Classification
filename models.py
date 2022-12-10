@@ -75,3 +75,15 @@ class tinyCNN(nn.Module):
         x  = self.flatten(x)
         x  = self.out(x)
         return x
+
+
+class NeuralNet(nn.Module):
+    def __init__(self, in_features=2048, num_classes = 11):
+        super(NeuralNet, self).__init__()
+        self.fc1  =  nn.Linear(in_features=in_features, out_features=num_classes)
+        self.flatten  = nn.Flatten(start_dim=1)
+
+    def forward(self, x):
+        x  = self.flatten(x)
+        x = self.fc1(x)
+        return x
