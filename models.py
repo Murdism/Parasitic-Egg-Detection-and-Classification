@@ -2,7 +2,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.autograd import Variable
 import torchvision
 
 
@@ -18,14 +17,16 @@ def get_pretrained_model():
 
     return resnet152_model
 
+
+
 class CNN(nn.Module):
     def __init__(self, input_channels=3, filters=32, num_classes=11):
         super(CNN, self).__init__()
         self.conv1  = nn.Conv2d(input_channels, filters, kernel_size=2) 
         self.conv2  = nn.Conv2d(filters, filters * 2, kernel_size=3)
 
-        self.fc1  =  nn.Linear(in_features=  (filters * 2 * 56*56  + 2048) , out_features=2)
-        self.out = nn.Linear(2, out_features=num_classes)
+        self.fc1  =  nn.Linear(in_features=  (filters * 2 * 56*56  + 2048) , out_features=filters)
+        self.out = nn.Linear(filters, out_features=num_classes)
 
         self.flatten = nn.Flatten(start_dim=1)
 
@@ -73,4 +74,16 @@ class tinyCNN(nn.Module):
 
         x  = self.flatten(x)
         x  = self.out(x)
+        return x
+
+
+class NeuralNet(nn.Module):
+    def __init__(self, in_features=2048, num_classes = 11):
+        super(NeuralNet, self).__init__()
+        self.fc1  =  nn.Linear(in_features=in_features, out_features=num_classes)
+        self.flatten  = nn.Flatten(start_dim=1)
+
+    def forward(self, x):
+        x  = self.flatten(x)
+        x = self.fc1(x)
         return x
