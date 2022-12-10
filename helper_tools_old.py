@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 import torch
 from torch.autograd import Variable
 from tqdm import tqdm
-# from datapreprocess import preprocess_image
+from datapreprocess import preprocess_image
 import seaborn as sns
 from sklearn.metrics import *
 import matplotlib.pyplot as plt
@@ -21,96 +21,81 @@ import skimage
 from PIL import Image
 from chitra.image import Chitra
 
+# class CustomDataset(torch.utils.data.Dataset):
+#     def __init__(self, data, transform=None,IMAGE_SIZE = 320):
+#         super(CustomDataset, self).__init__()
+#         # List of files
+#         self.IMAGE_SIZE = IMAGE_SIZE
+#         self.data_files = data[0]  
+#         self.label_files = data[1]
+#         self.class_labels = torch.LongTensor(self.get_class_labels()) 
+#         self.transform = transform
+#         # Sanity check : raise an error if some files do not exist
+#         for f in self.data_files:
+#             if not os.path.isfile(f):
+#                 raise KeyError("{} is not a file !".format(f))
 
-def preprocess_image():
-    """make the images into restnet 50 model format and normalization"""
-    preprocess = transforms.Compose(
-        [
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
-            transforms.ToTensor(),
-            transforms.Normalize( mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225],       
-            #  mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5], if domain of image is different from imagenet
-
-            ),
-        ]
-    )
-    return preprocess
-class CustomDataset(torch.utils.data.Dataset):
-    def __init__(self, data, transform=None,IMAGE_SIZE = 320):
-        super(CustomDataset, self).__init__()
-        # List of files
-        self.IMAGE_SIZE = IMAGE_SIZE
-        self.data_files = data[0]  
-        self.label_files = data[1]
-        self.class_labels = torch.LongTensor(self.get_class_labels()) 
-        self.transform = transform
-        # Sanity check : raise an error if some files do not exist
-        for f in self.data_files:
-            if not os.path.isfile(f):
-                raise KeyError("{} is not a file !".format(f))
-
-    def __len__(self):
-        return len(self.data_files)  # the length of the used data
+#     def __len__(self):
+#         return len(self.data_files)  # the length of the used data
     
-    def img_size(self,idx):
-        self.img =np.asarray(io.imread(self.data_files[idx]))
-        return (self.img).shape
+#     def img_size(self,idx):
+#         self.img =np.asarray(io.imread(self.data_files[idx]))
+#         return (self.img).shape
     
-    def get_class_labels(self):
-        labels  = []
-        for fname in self.label_files:
-            with open(fname, "r") as file:
-                class_label  = int(file.read().split(" ")[0])
-                labels.append(class_label)
-        return np.array(labels,dtype=np.uint8)
+#     def get_class_labels(self):
+#         labels  = []
+#         for fname in self.label_files:
+#             with open(fname, "r") as file:
+#                 class_label  = int(file.read().split(" ")[0])
+#                 labels.append(class_label)
+#         return np.array(labels,dtype=np.uint8)
 
-    def original_img(self,idx):
-        self.img =(1/255
-             *np.asarray(
-                io.imread(self.data_files[idx], plugin="pil").transpose(
-                    (2, 0, 1)
-                ),
-                dtype="float32",
-            )
-        )
-        return self.img,self.labels[idx]
+#     def original_img(self,idx):
+#         self.img =(1/255
+#              *np.asarray(
+#                 io.imread(self.data_files[idx], plugin="pil").transpose(
+#                     (2, 0, 1)
+#                 ),
+#                 dtype="float32",
+#             )
+#         )
+#         return self.img,self.labels[idx]
 
-    def get_class_label(self,idx):
-        return self.class_labels[idx]
+#     def get_class_label(self,idx):
+#         return self.class_labels[idx]
 
-    def resized_bbox(self,idx):
-        image = Chitra(self.data_files[idx], self.labels[idx], self.class_labels[idx])
-        # Chitra can rescale your bounding box automatically based on the new image size.
-        image.resize_image_with_bbox((640, 640))
+#     def resized_bbox(self,idx):
+#         image = Chitra(self.data_files[idx], self.labels[idx], self.class_labels[idx])
+#         # Chitra can rescale your bounding box automatically based on the new image size.
+#         image.resize_image_with_bbox((640, 640))
 
-        return np.array([image.bboxes[0].x1_int,image.bboxes[0].y1_int,image.bboxes[0].x2_int,image.bboxes[0].y2_int])
+#         return np.array([image.bboxes[0].x1_int,image.bboxes[0].y1_int,image.bboxes[0].x2_int,image.bboxes[0].y2_int])
 
-    def __getitem__(self, idx):
-        #         Pre-processing steps
+#     def __getitem__(self, idx):
+#         #         Pre-processing steps
         
-        if self.transform is not None:
+#         if self.transform is not None:
 
-            img  = np.asarray(io.imread(self.data_files[idx], plugin="pil")) # numpy image
-            pil_img  = Image.fromarray(img)
-            data_p = self.transform()(pil_img) # [C, H, W] format image is returned.
-            label_p = self.class_labels[idx]
+#             img  = np.asarray(io.imread(self.data_files[idx], plugin="pil")) # numpy image
+#             pil_img  = Image.fromarray(img)
+#             data_p = self.transform()(pil_img) # [C, H, W] format image is returned.
+#             label_p = self.class_labels[idx]
 
-            return data_p,label_p
+#             return data_p,label_p
 
-        else:
+#         else:
           
-            self.data = (
-                (1/255 )
-                *np.asarray(
-                io.imread(self.data_files[idx], plugin="pil").transpose(
-                    (2, 0, 1)
-                ),
-                dtype="float32",
-            ))
-            data_p= self.data
-            # Return the torch.Tensor values
-            return torch.from_numpy(data_p), self.class_labels[idx]
+#             self.data = (
+#                 (1/255 )
+#                 *np.asarray(
+#                 io.imread(self.data_files[idx], plugin="pil").transpose(
+#                     (2, 0, 1)
+#                 ),
+#                 dtype="float32",
+#             ))
+#             data_p= self.data
+#             # Return the torch.Tensor values
+#             return torch.from_numpy(data_p), self.class_labels[idx]
 
 class CustomDatasetV2(torch.utils.data.Dataset):
     def __init__(self, data, transform_fn,IMAGE_SIZE = 320):
@@ -170,6 +155,7 @@ class CustomDatasetV2(torch.utils.data.Dataset):
             pil_img  = Image.fromarray(img) # convert the numpy image to PIL Image
             resnet_data_p = self.transform(pil_img) # transform PIL image to [C, H, W] formatted pytorch tensor
             label_p = self.class_labels[idx]
+            print("hello world")
 
             return self.data_files[idx],resnet_data_p,label_p
 
@@ -308,19 +294,6 @@ def evalution_metrics(ground_truth, predictions):
 
 
 
-def get_pretrained_model():
-    
-    resnet152 = torchvision.models.resnet152(pretrained=True)
-    resnet152.eval()
-    # remove the last layer
-    resnet152_model = torch.nn.Sequential(*(list(resnet152.children())[:-1]))
-    # freeze the model
-    for param in resnet152_model.parameters():
-        param.requires_grad = False
-
-    return resnet152_model
-
-
 
 def trainCustomModel(resnetModel,yoloDetectModel,custom_cnn_classifier, train_dataloader,optimizer,loss_fn, epochs=30, learning_rate=0.001, device='cpu'):
     """Accepts feature from resnet 
@@ -335,7 +308,7 @@ def trainCustomModel(resnetModel,yoloDetectModel,custom_cnn_classifier, train_da
         number_of_batches = 0
         epoch_loss_values = 0.0
         epoch_accs = 0.0
-        for index, (X1, y) in enumerate(tqdm(train_dataloader)):
+        for index, (fn,X1, y) in enumerate(tqdm(train_dataloader)):
             # put tensors in gpu state
             X1  = Variable(X1, requires_grad=True).to(device)
             # X2 = Variable(X2, requires_grad=True).to(device)
