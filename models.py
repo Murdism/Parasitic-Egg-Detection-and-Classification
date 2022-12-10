@@ -1,63 +1,76 @@
+
 import torch
 import torch.nn as nn
-from torchsummary import summary
 import torch.nn.functional as F
+from torch.autograd import Variable
 
 
-def get_pretrained_model(model_name):
-    res_model = torch.hub.load(
-        "pytorch/vision:v0.10.0",
-        model_name,
-        weights="ResNet152_Weights.DEFAULT",
-    )
-    # or any of these variants
-    # model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet34', pretrained=True)
-    # model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet50', pretrained=True)
-    # model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet101', pretrained=True)
-    # model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet152', pretrained=True)
-    res_model.eval()
+
+def get_pretrained_model():
+    
+    resnet152 = torchvision.models.resnet152(pretrained=True)
+    resnet152.eval()
     # remove the last layer
-    # new_model = torch.nn.Sequential(*(list(res_model.children())[:-1]))
-    # free the model
-    for param in res_model.parameters():
+    resnet152_model = torch.nn.Sequential(*(list(resnet152.children())[:-1]))
+    # freeze the model
+    for param in resnet152_model.parameters():
         param.requires_grad = False
 
-    return res_model
+    return resnet152_model
 
+class CNN(nn.Module):
+    def __init__(self, input_channels=3, filters=32, num_classes=11):
+        super(CNN, self).__init__()
+        self.conv1  = nn.Conv2d(input_channels, filters, kernel_size=2) 
+        self.conv2  = nn.Conv2d(filters, filters * 2, kernel_size=3)
 
-class NeuralNet(nn.Module):
-    def __init__(self, input_features=1000, n_classes=11):
-        super(NeuralNet, self).__init__()
-        # self.fc1 = nn.Linear(input_features, 256)
-        self.out = nn.Linear(input_features, n_classes)
+        self.fc1  =  nn.Linear(in_features=  (filters * 2 * 56*56  + 2048) , out_features=2)
+        self.out = nn.Linear(2, out_features=num_classes)
 
-    def forward(self, x):
-        # x = self.fc1(x)
-        x = F.relu(x)
-        # x = F.dropout(x, p=0.2)  # with 20% dropout rate
-        x = self.out(x)
+        self.flatten = nn.Flatten(start_dim=1)
+
+    def forward(self, x, x2):
+        x  = self.conv1(x) # output = (B, C,224,224)
+        x  = F.relu(x) 
+        x  = F.max_pool2d(x, kernel_size=2, padding=1) #output = (B,C,112,112)
+        x  = F.dropout(x, 0.2)
+
+        x  = self.conv2(x) #output = (B,iC,112,112)
+        x  = F.relu(x)
+        x  = F.max_pool2d(x, kernel_size=2, padding=1) # #output = (B,iC,56,56)
+        x  = F.dropout(x, 0.2)
+    
+        x  = self.flatten(x)
+        x2  = self.flatten(x2)
+        x  = torch.cat((x, x2), dim=1)
+        x  = self.fc1(x)
+        x  = F.relu(x)
+        x  = F.dropout(x, 0.25)
+        x  = self.out(x)
         return x
 
 
-def get_custom_model(res_out_features, n_classes):
-    """returns a resnet model with fully connected layers added to it:
-    the top part is a layers with frozen resnet model's weights.
-    the lower part is a neural network with 2 fully connected layers.
-    """
-    models = ["resnet50", "resnet101", "resnet152"]
-    res_model = get_pretrained_model(models[2])
-    nn_model = NeuralNet(res_out_features, n_classes)
-    custom_model = nn.Sequential(res_model, nn_model)
-    return custom_model
 
+class tinyCNN(nn.Module):
+    def __init__(self, input_channels=3, filters=32, num_classes=11):
+        super(tinyCNN, self).__init__()
+        self.conv1  = nn.Conv2d(input_channels, filters, kernel_size=2) 
+        self.conv2  = nn.Conv2d(filters, filters * 2, kernel_size=3)
+        self.out = nn.Linear(filters * 2 * 56*56, out_features=num_classes)
 
-if __name__ == "__main__":
-    models = ["resnet50", "resnet101", "resnet152"]
-    res_out_features = 1000
-    classes = 11
-    custom_model = get_custom_model(res_out_features, classes)
-    # res_model = get_pretrained_model(models[2])
-    # nn_model = NeuralNet(res_out_features, classes)
-    # custom_model = nn.Sequential(res_model, nn_model)
+        self.flatten = nn.Flatten(start_dim=1)
 
-    print(summary(custom_model, (3, 224, 224)))
+    def forward(self, x):
+        x  = self.conv1(x) # output = (B, C,224,224)
+        x  = F.relu(x) 
+        x  = F.max_pool2d(x, kernel_size=2, padding=1) #output = (B,C,112,112)
+        x  = F.dropout(x, 0.2)
+
+        x  = self.conv2(x) #output = (B,iC,112,112)
+        x  = F.relu(x)
+        x  = F.max_pool2d(x, kernel_size=2, padding=1) # #output = (B,iC,56,56)
+        x  = F.dropout(x, 0.2)
+
+        x  = self.flatten(x)
+        x  = self.out(x)
+        return x
