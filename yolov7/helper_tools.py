@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 import torch
 from torch.autograd import Variable
 from tqdm import tqdm
-from datapreprocess import preprocess_image
+# from datapreprocess import preprocess_image
 import seaborn as sns
 from sklearn.metrics import *
 import matplotlib.pyplot as plt
@@ -41,6 +41,21 @@ from utils.torch_utils import select_device, load_classifier, time_synchronized,
 # images = detect(files)
 
 
+
+def preprocess_image():
+    """make the images into restnet 50 model format and normalization"""
+    preprocess = transforms.Compose(
+        [
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize( mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225],       
+            #  mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5], if domain of image is different from imagenet
+
+            ),
+        ]
+    )
+    return preprocess
 class CustomDataset(torch.utils.data.Dataset):
     def __init__(self, data, transform=None,IMAGE_SIZE = 320):
         super(CustomDataset, self).__init__()
@@ -176,7 +191,7 @@ class CustomDatasetV2(torch.utils.data.Dataset):
             resnet_data_p = self.transform(pil_img) # transform PIL image to [C, H, W] formatted pytorch tensor
             label_p = self.class_labels[idx]
 
-            return resnet_data_p,label_p
+            return self.data_files[idx],resnet_data_p,label_p
 
 
 
