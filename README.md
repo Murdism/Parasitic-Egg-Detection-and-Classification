@@ -50,16 +50,18 @@ python train.py --epochs 10 --workers 6 --device 0 --batch-size 12 --data data/c
 ## Test dataset
 
 ``` 
-!python test.py --weights yolov7/runs/train/yolov7_cell_detection_fixed_res23/weights/best.pt --task test --data data/cell_detection.yaml
+!python test.py --weights runs/train/yolov7_cell_detection_fixed_res23/weights/best.pt --task test --data data/cell_detection.yaml
 
 ```
 
 ## Inference
 ```
-python detect.py --source ../../inference_data/video.mp4 --weights yolov7/runs/train/yolov7_cell_detection_fixed_res23/weights/best.pt --view-img
+python detect.py --source cell_datatset/images/test/Enterobius vermicularis_0965.jpg --weights yolov7/runs/train/yolov7_cell_detection_fixed_res23/weights/best.pt --view-img
 
 ```
+yolov7/cell_datatset/images/test/Enterobius vermicularis_0965.jpg
 
 ## Results 
 Results of the trained model can be found in [Evaluation](Evaluation) 
+
 
